@@ -3,6 +3,7 @@ import { Button } from "@chakra-ui/react";
 import { Route } from "react-router-dom";
 import HomePage from "./Pages/HomePage";
 import ChatPage from "./Pages/ChatPage";
+import "./App.css";
 
 const App = () => {
   return (
