@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Container,
   Box,
@@ -11,7 +11,17 @@ import {
 } from "@chakra-ui/react";
 import Login from "../components/Authentication/Login";
 import Signup from "../components/Authentication/Signup";
-const HomePage = () => {
+import { useHistory } from "react-router-dom";
+const Homepage = () => {
+  const history = useHistory();
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("userInfo"));
+
+    if (user) history.push("/chats");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [history]);
+
   return (
     <Container maxW="xl" centerContent>
       <Box
@@ -48,4 +58,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default Homepage;
