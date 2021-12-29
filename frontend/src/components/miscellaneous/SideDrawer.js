@@ -177,11 +177,11 @@ function SideDrawer() {
             {loading ? (
               <ChatLoading />
             ) : (
-              searchResult?.map((user) => (
+              searchResult?.map((otherUser) => (
                 <UserListItem
-                  key={user._id}
-                  user={user}
-                  handleFunction={() => accessChat(user._id)}
+                  key={otherUser._id}
+                  user={otherUser}
+                  handleFunction={() => accessChat(otherUser._id)}
                 />
               ))
             )}

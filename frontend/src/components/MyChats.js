@@ -16,7 +16,7 @@ const MyChats = ({ fetchAgain }) => {
   const toast = useToast();
 
   const fetchChats = async () => {
-    // console.log(user._id);
+    console.log(user._id);
     try {
       const config = {
         headers: {
@@ -84,7 +84,7 @@ const MyChats = ({ fetchAgain }) => {
         borderRadius="lg"
         overflowY="hidden"
       >
-        {chats ? (
+        {chats && loggedUser ? (
           <Stack overflowY="scroll">
             {chats.map((chat) => (
               <Box

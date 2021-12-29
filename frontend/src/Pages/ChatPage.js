@@ -5,9 +5,10 @@ import MyChats from "../components/MyChats";
 import SideDrawer from "../components/miscellaneous/SideDrawer";
 import { ChatState } from "../Context/ChatProvider";
 
-const Chatpage = () => {
+const ChatPage = () => {
   const [fetchAgain, setFetchAgain] = useState(false);
   const { user } = ChatState();
+  // console.log(user);
 
   return (
     <div style={{ width: "100%" }}>
@@ -22,4 +23,4 @@ const Chatpage = () => {
   );
 };
 
-export default Chatpage;
+export default ChatPage;

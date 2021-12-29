@@ -10,11 +10,11 @@ import { useHistory } from "react-router-dom";
 
 const Signup = () => {
   const [show, setShow] = useState(false);
-  const [name, setName] = useState();
-  const [email, setEmail] = useState();
-  const [confirmpassword, setConfirmpassword] = useState();
-  const [password, setPassword] = useState();
-  const [pic, setPic] = useState();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [confirmpassword, setConfirmpassword] = useState("");
+  const [password, setPassword] = useState("");
+  const [pic, setPic] = useState("");
   const [loading, setLoading] = useState(false);
   const toast = useToast();
   const history = useHistory();
