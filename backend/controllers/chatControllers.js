@@ -191,7 +191,44 @@ const removeFromGroup = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Add user to Group / Leave
+// @desc    Leave from Group
+// @route   PUT /api/chat/leavegroup
+// @access  Protected
+const leaveGroup = asyncHandler(async (req, res) => {
+  const { chatId } = req.body;
+
+  const foundChat = await Chat.findById(chatId);
+  if (!foundChat) {
+    res.status(404);
+    throw new Error("Chat not Found");
+  }
+
+  if (!foundChat.isGroupChat) {
+    res.status(404);
+    throw new Error("Not a Group Chat");
+  }
+
+  const left = await Chat.findByIdAndUpdate(
+    chatId,
+    {
+      $pull: { users: req.user._id },
+    },
+    {
+      new: true,
+    }
+  )
+    .populate("users", "-password")
+    .populate("groupAdmin", "-password");
+
+  if (!left) {
+    res.status(404);
+    throw new Error("Chat Not Found");
+  } else {
+    res.json(left);
+  }
+});
+
+// @desc    Add user to Group
 // @route   PUT /api/chat/groupadd
 // @access  Protected
 const addToGroup = asyncHandler(async (req, res) => {
@@ -243,4 +280,5 @@ module.exports = {
   renameGroup,
   removeFromGroup,
   addToGroup,
+  leaveGroup,
 };
