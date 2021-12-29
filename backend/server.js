@@ -8,7 +8,7 @@ const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
 const app = express();
 
-dotenv.config();
+dotenv.config({ path: "../.env" });
 connectDB();
 app.use(express.json());
 

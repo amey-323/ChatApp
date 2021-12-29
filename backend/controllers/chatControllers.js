@@ -117,6 +117,17 @@ const createGroupChat = asyncHandler(async (req, res) => {
 const renameGroup = asyncHandler(async (req, res) => {
   const { chatId, chatName } = req.body;
 
+  const foundChat = await Chat.findById(chatId);
+  if (!foundChat) {
+    res.status(404);
+    throw new Error("Chat not Found");
+  }
+
+  if (!foundChat.isGroupChat) {
+    res.status(404);
+    throw new Error("Not a Group Chat");
+  }
+
   const updatedChat = await Chat.findByIdAndUpdate(
     chatId,
     {
@@ -144,6 +155,21 @@ const removeFromGroup = asyncHandler(async (req, res) => {
   const { chatId, userId } = req.body;
 
   // check if the requester is admin
+  const foundChat = await Chat.findById(chatId);
+  if (!foundChat) {
+    res.status(404);
+    throw new Error("Chat not Found");
+  }
+
+  if (!foundChat.isGroupChat) {
+    res.status(404);
+    throw new Error("Not a Group Chat");
+  }
+
+  if (foundChat.groupAdmin.toString() !== req.user._id.toString()) {
+    res.status(401);
+    throw new Error("Permission Denied, you are not the group admin");
+  }
 
   const removed = await Chat.findByIdAndUpdate(
     chatId,
@@ -172,11 +198,28 @@ const addToGroup = asyncHandler(async (req, res) => {
   const { chatId, userId } = req.body;
 
   // check if the requester is admin
+  const foundChat = await Chat.findById(chatId);
+  if (!foundChat) {
+    res.status(404);
+    throw new Error("Chat not Found");
+  }
+
+  if (!foundChat.isGroupChat) {
+    res.status(404);
+    throw new Error("Not a Group Chat");
+  }
+  console.log(foundChat.groupAdmin);
+  console.log(req.user._id);
+
+  if (foundChat.groupAdmin.toString() !== req.user._id.toString()) {
+    res.status(401);
+    throw new Error("Permission Denied, you are not the group admin");
+  }
 
   const added = await Chat.findByIdAndUpdate(
     chatId,
     {
-      $push: { users: userId },
+      $addToSet: { users: userId },
     },
     {
       new: true,
