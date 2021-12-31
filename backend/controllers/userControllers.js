@@ -136,7 +136,7 @@ const authGoogle = asyncHandler(async (req, res) => {
   } catch (error) {
     console.error(error.message);
     res.status(500);
-    throw new Error("Server Error");
+    throw new Error(error.message);
   }
 });
 module.exports = { registerUser, authUser, authGoogle, allUsers };

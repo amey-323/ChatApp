@@ -7,6 +7,9 @@ import { Button } from "@chakra-ui/button";
 import { useToast } from "@chakra-ui/react";
 import axios from "axios";
 import { useHistory } from "react-router-dom";
+import { GoogleLogin } from "react-google-login";
+import { GoogleLogout } from "react-google-login";
+import { ChatState } from "../../Context/ChatProvider";
 
 const Signup = () => {
   const [show, setShow] = useState(false);
@@ -16,8 +19,37 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [pic, setPic] = useState("");
   const [loading, setLoading] = useState(false);
+  const { user, setUser } = ChatState();
   const toast = useToast();
   const history = useHistory();
+
+  const onSuccess = async (resp) => {
+    const { tokenId, profileObj } = resp;
+    const { googleId } = profileObj;
+    const config = {
+      headers: {
+        "Content-type": "application/json",
+      },
+    };
+    console.log(resp);
+
+    const { data } = await axios.post(
+      "api/user/google",
+      {
+        idToken: tokenId,
+        googleId,
+      },
+      config
+    );
+    console.log(data);
+    localStorage.setItem("userInfo", JSON.stringify(data));
+    setUser(data);
+    history.push("/chats");
+  };
+
+  const onFailure = (resp) => {
+    console.log(resp);
+  };
 
   const handleClick = () => setShow(!show);
 
@@ -71,6 +103,7 @@ const Signup = () => {
       });
       localStorage.setItem("userInfo", JSON.stringify(data));
       setLoading(false);
+      setUser(data);
       history.push("/chats");
     } catch (error) {
       toast({
@@ -201,6 +234,14 @@ const Signup = () => {
       >
         Sign Up
       </Button>
+      <div>OR</div>
+      <GoogleLogin
+        clientId={process.env.REACT_APP_CLIENT_ID}
+        onSuccess={onSuccess}
+        onFailure={onFailure}
+        cookiePolicy="single_host_origin"
+        buttonText="Login with Google"
+      ></GoogleLogin>
     </VStack>
   );
 };
