@@ -30,7 +30,6 @@ import UserListItem from "../userAvatar/UserListItem";
 import { ChatState } from "../../Context/ChatProvider";
 import { getSender } from "../../config/ChatLogics";
 import NotificationBadge, { Effect } from "react-notification-badge";
-import { effect } from "@chakra-ui/react";
 
 function SideDrawer() {
   const [search, setSearch] = useState("");

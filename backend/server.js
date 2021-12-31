@@ -6,12 +6,25 @@ const userRoutes = require("./routes/userRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
-
+const session = require("express-session");
 const app = express();
 
-dotenv.config();
+dotenv.config({ path: "../.env" });
+// dotenv.config();
 connectDB();
 app.use(express.json());
+app.use(
+  session({
+    cookie: {
+      secure: true,
+      maxAge: 86400,
+      sameSite: "none",
+    },
+    secret: process.env.JWT_SECRET,
+    resave: false,
+    saveUninitialized: false,
+  })
+);
 
 app.get("/", (req, res) => {
   res.send("API is running");

@@ -7,6 +7,8 @@ import axios from "axios";
 import { useToast } from "@chakra-ui/react";
 import { useHistory } from "react-router-dom";
 import { ChatState } from "../../Context/ChatProvider";
+import { GoogleLogin } from "react-google-login";
+import { GoogleLogout } from "react-google-login";
 
 const Login = () => {
   const [show, setShow] = useState(false);
@@ -17,6 +19,34 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const history = useHistory();
   const { setUser } = ChatState();
+
+  const onSuccess = async (resp) => {
+    const { tokenId, profileObj } = resp;
+    const { googleId } = profileObj;
+    const config = {
+      headers: {
+        "Content-type": "application/json",
+      },
+    };
+    console.log(resp);
+
+    const { data } = await axios.post(
+      "api/user/google",
+      {
+        idToken: tokenId,
+        googleId,
+      },
+      config
+    );
+    console.log(data);
+    localStorage.setItem("userInfo", JSON.stringify(data));
+    setUser(data);
+    history.push("/chats");
+  };
+
+  const onFailure = (resp) => {
+    console.log(resp);
+  };
 
   const submitHandler = async () => {
     setLoading(true);
@@ -119,6 +149,14 @@ const Login = () => {
       >
         Get Guest User Credentials
       </Button>
+      <div>OR</div>
+      <GoogleLogin
+        clientId={process.env.REACT_APP_CLIENT_ID}
+        onSuccess={onSuccess}
+        onFailure={onFailure}
+        cookiePolicy="single_host_origin"
+        buttonText="Login with Google"
+      ></GoogleLogin>
     </VStack>
   );
 };
