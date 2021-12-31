@@ -45,6 +45,12 @@ const MyChats = ({ fetchAgain }) => {
     // eslint-disable-next-line
   }, [fetchAgain]);
 
+  useEffect(() => {
+    return () => {
+      console.log("cleaned up");
+    };
+  }, []);
+
   return (
     <Box
       d={{ base: selectedChat ? "none" : "flex", md: "flex" }}
