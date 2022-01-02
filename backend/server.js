@@ -9,7 +9,7 @@ const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const session = require("express-session");
 const app = express();
 
-dotenv.config({ path: "../.env" });
+dotenv.config();
 // dotenv.config();
 connectDB();
 app.use(express.json());

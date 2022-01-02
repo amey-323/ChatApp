@@ -9,6 +9,7 @@ import { useHistory } from "react-router-dom";
 import { ChatState } from "../../Context/ChatProvider";
 import { GoogleLogin } from "react-google-login";
 import { GoogleLogout } from "react-google-login";
+import { FcGoogle } from "react-icons/fc";
 
 const Login = () => {
   const [show, setShow] = useState(false);
@@ -155,6 +156,19 @@ const Login = () => {
         onSuccess={onSuccess}
         onFailure={onFailure}
         cookiePolicy="single_host_origin"
+        render={(renderProps) => (
+          <Button
+            variant="solid"
+            colorScheme="white"
+            color="#4b4f56"
+            leftIcon={<FcGoogle />}
+            width="100%"
+            onClick={renderProps.onClick}
+            disabled={renderProps.disabled}
+          >
+            Sign in with Google
+          </Button>
+        )}
         buttonText="Login with Google"
       ></GoogleLogin>
     </VStack>
