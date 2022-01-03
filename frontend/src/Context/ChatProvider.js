@@ -9,6 +9,12 @@ const ChatProvider = ({ children }) => {
   const [chats, setChats] = useState([]);
   const [notification, setNotification] = useState([]);
 
+  //Related to Calling
+  const [caller, setCaller] = useState({});
+  const [receiver, setReceiver] = useState({});
+  const [calling, setCalling] = useState(false);
+  const [isCaller, setIsCaller] = useState(false);
+
   const history = useHistory();
 
   useEffect(() => {
@@ -30,6 +36,14 @@ const ChatProvider = ({ children }) => {
         setChats,
         notification,
         setNotification,
+        caller,
+        setCaller,
+        calling,
+        setCalling,
+        isCaller,
+        setIsCaller,
+        receiver,
+        setReceiver,
       }}
     >
       {children}

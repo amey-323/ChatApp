@@ -48,7 +48,7 @@ const Signup = () => {
   };
 
   const onFailure = (resp) => {
-    console.log(resp);
+    // console.log(resp);
   };
 
   const handleClick = () => setShow(!show);
@@ -76,7 +76,7 @@ const Signup = () => {
       });
       return;
     }
-    console.log(name, email, password, pic);
+    // console.log(name, email, password, pic);
     try {
       const config = {
         headers: {
@@ -93,7 +93,7 @@ const Signup = () => {
         },
         config
       );
-      console.log(data);
+      // console.log(data);
       toast({
         title: "Registration Successful",
         status: "success",
@@ -130,7 +130,7 @@ const Signup = () => {
       });
       return;
     }
-    console.log(pics);
+    // console.log(pics);
 
     if (
       pics.type === "image/jpeg" ||
@@ -149,7 +149,7 @@ const Signup = () => {
         .then((res) => res.json())
         .then((data) => {
           setPic(data.url.toString());
-          console.log(data.url.toString());
+          // console.log(data.url.toString());
           setLoading(false);
         })
         .catch((err) => {

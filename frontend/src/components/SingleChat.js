@@ -1,4 +1,4 @@
-import { ArrowBackIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon, PhoneIcon } from "@chakra-ui/icons";
 import "./styles.css";
 import {
   Box,
@@ -9,7 +9,7 @@ import {
   Text,
   useToast,
 } from "@chakra-ui/react";
-
+import { Tooltip } from "@chakra-ui/tooltip";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { getSender, getSenderFull } from "../config/ChatLogics";
@@ -21,18 +21,27 @@ import Lottie from "react-lottie";
 import animationData from "../animations/typing.json";
 
 import io from "socket.io-client";
+import { useHistory } from "react-router-dom";
 
 const ENDPOINT = "http://localhost:5000";
 var socket, selectedChatCompare;
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
-  const { user, selectedChat, setSelectedChat, notification, setNotification } =
-    ChatState();
+  const {
+    user,
+    selectedChat,
+    setSelectedChat,
+    notification,
+    setNotification,
+    calling,
+    setCalling,
+  } = ChatState();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const [socketConnected, setSocketConnected] = useState(false);
   const [typing, setTyping] = useState(false);
   const [istyping, setIsTyping] = useState(false);
+  const history = useHistory();
 
   const defaultOptions = {
     loop: true,
@@ -109,7 +118,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           },
           config
         );
-        console.log(data);
+        // console.log(data);
         socket.emit("new message", data);
         setMessages([...messages, data]);
       } catch (error) {
@@ -171,7 +180,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     <>
       {selectedChat ? (
         <>
-          <Text
+          <Box
             fontSize={{ base: "28px", md: "30px" }}
             pb={3}
             px={2}
@@ -186,22 +195,77 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
               icon={<ArrowBackIcon />}
               onClick={() => setSelectedChat("")}
             />
+
             {!selectedChat.isGroupChat ? (
               <>
                 {getSender(user, selectedChat.users)}
-                <ProfileModal user={getSenderFull(user, selectedChat.users)} />
+                <Box
+                  d="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  flexDir="row"
+                  fontSize={{ base: "28px", md: "30px" }}
+                >
+                  <Tooltip
+                    label="Start Video Call"
+                    hasArrow
+                    placement="bottom-end"
+                  >
+                    <IconButton
+                      marginRight={4}
+                      icon={<PhoneIcon />}
+                      onClick={() => {
+                        setCalling(true);
+                        socket.emit("makingCall", {
+                          from: user._id,
+                          name: user.name,
+                          to: selectedChat,
+                        });
+                      }}
+                    />
+                  </Tooltip>
+                  <ProfileModal
+                    user={getSenderFull(user, selectedChat.users)}
+                  />
+                </Box>
               </>
             ) : (
               <>
                 {selectedChat.chatName.toUpperCase()}
-                <UpdateGroupChatModal
-                  fetchAgain={fetchAgain}
-                  setFetchAgain={setFetchAgain}
-                  fetchMessages={fetchMessages}
-                />
+                <Box
+                  d="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  flexDir="row"
+                  fontSize={{ base: "28px", md: "30px" }}
+                >
+                  <Tooltip
+                    label="Start Video Call"
+                    hasArrow
+                    placement="bottom-end"
+                  >
+                    <IconButton
+                      marginRight={4}
+                      icon={<PhoneIcon />}
+                      onClick={() => {
+                        setCalling(true);
+                        socket.emit("makingCall", {
+                          from: user._id,
+                          name: user.name,
+                          to: selectedChat,
+                        });
+                      }}
+                    />
+                  </Tooltip>
+                  <UpdateGroupChatModal
+                    fetchAgain={fetchAgain}
+                    setFetchAgain={setFetchAgain}
+                    fetchMessages={fetchMessages}
+                  />
+                </Box>
               </>
             )}
-          </Text>
+          </Box>
           <Box
             d="flex"
             flexDir="column"

@@ -46,7 +46,7 @@ const server = app.listen(PORT, () => {
 const io = require("socket.io")(server, {
   pingTimeout: 60000,
   cors: {
-    origin: "http://localhost:3000",
+    origin: "http://localhost:3000" || "http://localhost:3001",
   },
 });
 
@@ -54,8 +54,12 @@ io.on("connection", (socket) => {
   console.log("connected to socket.io");
 
   socket.on("setup", (userData) => {
-    socket.join(userData._id);
-    socket.emit("connected");
+    try {
+      socket.join(userData._id);
+      socket.emit("connected");
+    } catch (err) {
+      console.log(err);
+    }
   });
 
   socket.on("join chat", (room) => {
@@ -75,6 +79,58 @@ io.on("connection", (socket) => {
       socket.in(user._id).emit("message received", newMessageReceived);
     });
   });
+
+  socket.on("disconnect", () => {
+    socket.broadcast.emit("callEnded");
+  });
+
+  socket.on("callUser", (data) => {
+    //Start from here
+    const chat = data.userToCall;
+
+    chat.users.forEach((user) => {
+      // console.log(user._id, data.from);
+      if (user._id == data.from) return;
+      // console.log("Checking...", user._id);
+      socket.in(user._id).emit("callUser", {
+        signal: data.signalData,
+        from: data.from,
+        name: data.name,
+      });
+    });
+  });
+
+  socket.on("makingCall", (data) => {
+    //Start from here
+    const chat = data.to;
+
+    chat.users.forEach((user) => {
+      // console.log(user._id, data.from);
+      if (user._id == data.from) return;
+      socket.in(user._id).emit("makingCall", {
+        from: data.from,
+        name: data.name,
+      });
+    });
+  });
+
+  socket.on("acceptCall", (data) => {
+    // console.log(data);
+    const { by, name } = data;
+    socket.in(data.of).emit("isCallAccepted", { by, name });
+  });
+
+  socket.on("rejectCall", (data) => {
+    // console.log(data);
+    const { by, name } = data;
+    socket.in(data.of).emit("isCallRejected", { by, name });
+  });
+
+  socket.on("answerCall", (data) => {
+    console.log(data);
+    socket.in(data.to.from).emit("callAccepted", data.signal);
+  });
+
   socket.off("setup", () => {
     console.log("USER DISCONNECTED");
     socket.leave(userData._id);

@@ -28,7 +28,7 @@ const Login = () => {
         "Content-type": "application/json",
       },
     };
-    console.log(resp);
+    // console.log(resp);
 
     const { data } = await axios.post(
       "api/user/google",
@@ -38,7 +38,7 @@ const Login = () => {
       },
       config
     );
-    console.log(data);
+    // console.log(data);
     localStorage.setItem("userInfo", JSON.stringify(data));
     setUser(data);
     history.push("/chats");
