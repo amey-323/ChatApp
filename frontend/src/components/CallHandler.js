@@ -3,6 +3,9 @@ import { ChatState } from "../Context/ChatProvider";
 import io from "socket.io-client";
 import { Box, Button, Text } from "@chakra-ui/react";
 import { useHistory } from "react-router-dom";
+import Lottie from "react-lottie";
+import animationData from "../animations/call.json";
+import aData from "../animations/call-rejected.json";
 
 const ENDPOINT = "http://localhost:5000";
 
@@ -18,6 +21,23 @@ const CallHandler = () => {
     setCaller,
     setReceiver,
   } = ChatState();
+
+  const defaultOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: animationData,
+    rendererSettings: {
+      preserveAspectRatio: "xMidYMid slice",
+    },
+  };
+  const dOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: aData,
+    rendererSettings: {
+      preserveAspectRatio: "xMidYMid slice",
+    },
+  };
 
   const history = useHistory();
 
@@ -82,13 +102,86 @@ const CallHandler = () => {
   if (calling) {
     // console.log(selectedChat.users);
 
-    var text = "Calling ";
+    var text = "Calling ...";
+    var uname = "";
     selectedChat.users.forEach((u) => {
       if (u._id !== user._id) {
-        text += `${u.name} `;
+        uname += `${u.name} `;
       }
     });
 
+    return (
+      <Box
+        d="flex"
+        alignItems="center"
+        justifyContent="start"
+        flexDir={{ base: "column", md: "row" }}
+        px={5}
+        py={3}
+        mt={2}
+        mx={3}
+        bg="#38B2AC"
+        borderRadius="lg"
+        borderWidth="1px"
+      >
+        <Text
+          color="white"
+          mr={{ base: 0, md: 5 }}
+          ml={{ base: 0, md: 3 }}
+          fontSize={20}
+        >
+          {text}
+        </Text>
+
+        {selectedChat.users.map((u) => {
+          return u._id !== user._id ? (
+            <Box
+              bg="white"
+              color="black"
+              px={5}
+              py={2}
+              mx={2}
+              my={{ base: 2, md: 0 }}
+              borderRadius="lg"
+              key={u._id}
+            >
+              {u.name}
+            </Box>
+          ) : null;
+        })}
+        <Lottie options={defaultOptions} height={100} width={100} />
+      </Box>
+    );
+  }
+
+  if (acceptedByUser) {
+    return (
+      <Box
+        d="flex"
+        alignItems="center"
+        justifyContent="start"
+        flexDir={{ base: "column", md: "row" }}
+        px={5}
+        py={3}
+        mt={2}
+        mx={3}
+        bg="#38B2AC"
+        borderRadius="lg"
+        borderWidth="1px"
+      >
+        <Text
+          color="white"
+          mr={{ base: 0, md: 5 }}
+          ml={{ base: 0, md: 3 }}
+          fontSize={20}
+        >
+          Call accepted
+        </Text>
+      </Box>
+    );
+  }
+
+  if (rejectedByUser) {
     return (
       <Box
         d="flex"
@@ -99,21 +192,21 @@ const CallHandler = () => {
         py={3}
         mt={2}
         mx={3}
-        bgColor="grey"
+        bg="#38B2AC"
         borderRadius="lg"
         borderWidth="1px"
       >
-        <Text>{text}</Text>
+        <Text
+          color="white"
+          mr={{ base: 0, md: 5 }}
+          ml={{ base: 0, md: 3 }}
+          fontSize={20}
+        >
+          Call rejected
+        </Text>
+        <Lottie options={dOptions} height={70} width={70} />
       </Box>
     );
-  }
-
-  if (acceptedByUser) {
-    return <div>Call accepted</div>;
-  }
-
-  if (rejectedByUser) {
-    return <div>Call rejected</div>;
   }
 
   return !acceptedByMe && !rejectedByMe && callFrom.name ? (
@@ -126,13 +219,26 @@ const CallHandler = () => {
       py={3}
       mt={2}
       mx={3}
-      bgColor="grey"
+      bg="#38B2AC"
       borderRadius="lg"
       borderWidth="1px"
     >
-      <Text pb={{ base: 2, md: 0 }} color="white">
-        {callFrom.name} is calling...
-      </Text>
+      <Box
+        d="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        flexDir={{ base: "column", md: "row" }}
+      >
+        <Text
+          color="white"
+          mr={{ base: 0, md: 5 }}
+          ml={{ base: 0, md: 3 }}
+          fontSize={20}
+        >
+          {callFrom.name} is calling...
+        </Text>
+        <Lottie options={defaultOptions} height={100} width={100} />
+      </Box>
       <div>
         <Button
           mr={2}

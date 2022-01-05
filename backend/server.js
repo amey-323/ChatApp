@@ -67,7 +67,11 @@ io.on("connection", (socket) => {
     console.log("User Joined Room: " + room);
   });
 
-  socket.on("typing", (room) => socket.in(room).emit("typing"));
+  socket.on("typing", (data) => {
+    const room = data.chat;
+    const { typer } = data;
+    socket.in(room).emit("typing", typer);
+  });
   socket.on("stop typing", (room) => socket.in(room).emit("stop typing"));
 
   socket.on("new message", (newMessageReceived) => {

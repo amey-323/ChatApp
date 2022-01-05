@@ -6,6 +6,7 @@ import Peer from "simple-peer";
 import io from "socket.io-client";
 import { ChatState } from "../Context/ChatProvider";
 import "./CallPage.css";
+import { VStack } from "@chakra-ui/layout";
 
 const socket = io.connect("http://localhost:5000");
 
@@ -98,7 +99,7 @@ const CallPage = () => {
   };
 
   return (
-    <>
+    <VStack>
       <h1 style={{ textAlign: "center", color: "#fff" }}>Call</h1>
       <div className="container">
         <div className="video-container">
@@ -155,7 +156,7 @@ const CallPage = () => {
           </Box>
         </div>
       </div>
-    </>
+    </VStack>
   );
 };
 

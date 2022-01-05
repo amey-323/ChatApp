@@ -2,16 +2,19 @@ import { ArrowBackIcon, PhoneIcon } from "@chakra-ui/icons";
 import "./styles.css";
 import {
   Box,
+  Button,
   FormControl,
+  HStack,
   IconButton,
   Input,
   Spinner,
   Text,
   useToast,
+  VStack,
 } from "@chakra-ui/react";
 import { Tooltip } from "@chakra-ui/tooltip";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { getSender, getSenderFull } from "../config/ChatLogics";
 import { ChatState } from "../Context/ChatProvider";
 import ProfileModal from "./miscellaneous/ProfileModal";
@@ -19,7 +22,9 @@ import UpdateGroupChatModal from "./miscellaneous/UpdateGroupChatModal";
 import ScrollableChat from "./ScrollableChat";
 import Lottie from "react-lottie";
 import animationData from "../animations/typing.json";
-
+import Picker from "emoji-picker-react";
+import SendIcon from "@material-ui/icons/Send";
+import InputEmoji from "react-input-emoji";
 import io from "socket.io-client";
 import { useHistory } from "react-router-dom";
 
@@ -41,6 +46,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [socketConnected, setSocketConnected] = useState(false);
   const [typing, setTyping] = useState(false);
   const [istyping, setIsTyping] = useState(false);
+  const [typer, setTyper] = useState("");
+  const [openEmojiPicker, setOpenEmojiPicker] = useState(false);
+  const inputRef = useRef();
   const history = useHistory();
 
   const defaultOptions = {
@@ -50,6 +58,19 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     rendererSettings: {
       preserveAspectRatio: "xMidYMid slice",
     },
+  };
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+    return () => {};
+  }, [inputRef]);
+
+  const onEmojiClick = (event, emojiObject) => {
+    setNewMessage(newMessage + emojiObject.emoji);
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
   const toast = useToast();
@@ -89,8 +110,15 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     socket = io(ENDPOINT);
     socket.emit("setup", user);
     socket.on("connected", () => setSocketConnected(true));
-    socket.on("typing", () => setIsTyping(true));
-    socket.on("stop typing", () => setIsTyping(false));
+    socket.on("typing", (t) => {
+      setIsTyping(true);
+      console.log(t);
+      setTyper(t);
+    });
+    socket.on("stop typing", () => {
+      setIsTyping(false);
+      setTyper("");
+    });
   }, []);
 
   useEffect(() => {
@@ -100,7 +128,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   }, [selectedChat]);
 
   const sendMessage = async (event) => {
-    if (event.key === "Enter" && newMessage) {
+    setOpenEmojiPicker(false);
+    if ((!event.key || event.key === "Enter") && newMessage) {
       socket.emit("stop typing", selectedChat._id);
       try {
         const config = {
@@ -156,7 +185,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     if (!socketConnected) return;
     if (!typing) {
       setTyping(true);
-      socket.emit("typing", selectedChat._id);
+      socket.emit("typing", { chat: selectedChat._id, typer: user.name });
     }
     let lastTypingTime = new Date().getTime();
     var timerLength = 3000;
@@ -187,6 +216,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             w="100%"
             fontFamily="Work sans"
             d="flex"
+            position="relative"
+            zIndex={1}
             justifyContent={{ base: "space-between" }}
             alignItems="center"
           >
@@ -299,9 +330,22 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             >
               {istyping ? (
                 <div>
+                  {typer ? (
+                    <Box
+                      alignItems="center"
+                      flexDir="column"
+                      fontSize={16}
+                      bg="white"
+                      w={{ base: "11%", md: "15%" }}
+                      borderRadius="lg"
+                      borderWidth="1px"
+                    >
+                      {typer} is typing
+                    </Box>
+                  ) : null}
                   <Lottie
                     options={defaultOptions}
-                    // height={50}
+                    height={20}
                     width={70}
                     style={{ marginBottom: 15, marginLeft: 0 }}
                   />
@@ -309,13 +353,45 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
               ) : (
                 <></>
               )}
-              <Input
-                variant="filled"
-                bg="#E0E0E0"
-                placeholder="Enter a message.."
-                value={newMessage}
-                onChange={typingHandler}
-              />
+              <HStack align="end" justify="left">
+                <Input
+                  bg="#E0E0E0"
+                  placeholder="Enter a message.."
+                  value={newMessage}
+                  onChange={typingHandler}
+                  ref={inputRef}
+                />
+                <VStack align="end">
+                  {openEmojiPicker && (
+                    <Picker
+                      position="relative"
+                      zIndex={5}
+                      preload={false}
+                      onEmojiClick={onEmojiClick}
+                    />
+                  )}
+                  <button
+                    className="emotes"
+                    onClick={(e) => {
+                      setOpenEmojiPicker(!openEmojiPicker);
+                    }}
+                  >
+                    😊
+                  </button>
+                </VStack>
+                {/* <InputEmoji
+                  value={newMessage}
+                  onChange={(e) => {
+                    typingHandler(e);
+                  }}
+                  onEnter={sendMessage}
+                  placeholder="Type a message"
+                /> */}
+
+                <Button onClick={sendMessage} className="send-msg">
+                  <SendIcon />
+                </Button>
+              </HStack>
             </FormControl>
           </Box>
         </>
