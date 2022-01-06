@@ -7,6 +7,14 @@ const messageSchema = mongoose.Schema(
     chat: { type: mongoose.Schema.Types.ObjectId, ref: "Chat" },
     readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     deletedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    time: {
+      type: String,
+      default: Date.now().time,
+    },
+    date: {
+      type: String,
+      default: Date.now().date,
+    },
   },
   { timestamps: true }
 );

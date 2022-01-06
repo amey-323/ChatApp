@@ -16,6 +16,18 @@ const userSchema = mongoose.Schema(
       required: true,
       default: false,
     },
+    time: {
+      type: String,
+      default: Date.now().time,
+    },
+    date: {
+      type: String,
+      default: Date.now().date,
+    },
+    status: {
+      type: String,
+      default: "offline",
+    },
   },
   { timestamps: true }
 );
