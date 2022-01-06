@@ -7,7 +7,7 @@ import io from "socket.io-client";
 import { ChatState } from "../Context/ChatProvider";
 import "./CallPage.css";
 import { VStack } from "@chakra-ui/layout";
-
+import CallEndIcon from "@material-ui/icons/CallEnd";
 const socket = io.connect("http://localhost:5000");
 
 const CallPage = () => {
@@ -20,6 +20,7 @@ const CallPage = () => {
   const myVideo = useRef();
   const userVideo = useRef();
   const connectionRef = useRef();
+  const localStream = useRef();
 
   useEffect(() => {
     if (!user) history.push("/");
@@ -72,6 +73,7 @@ const CallPage = () => {
       // console.log(signal);
       peer.signal(signal);
       connectionRef.current = peer;
+      localStream.current = myStream;
     });
   };
 
@@ -91,11 +93,13 @@ const CallPage = () => {
     });
     peer.signal(cSignal);
     connectionRef.current = peer;
+    localStream.current = myStream;
   };
 
   const leaveCall = () => {
     setCallEnded(true);
     connectionRef.current.destroy();
+    localStream.current.destroy();
   };
 
   return (
@@ -113,7 +117,7 @@ const CallPage = () => {
                   autoPlay
                   style={{ width: "300px" }}
                 />
-                <div>My Video</div>
+                <div>Me</div>
               </>
             )}
           </div>
@@ -147,10 +151,10 @@ const CallPage = () => {
                 px={5}
                 onClick={leaveCall}
               >
-                End Call
+                <CallEndIcon />
               </Button>
             ) : (
-              <div>Call has ended</div>
+              <div>{history.push("/chats")}</div>
             )}
             Call with {isCaller ? receiver?.name : caller?.name}
           </Box>
