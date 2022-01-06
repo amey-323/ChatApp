@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const currentDate = new Date();
 
 const messageSchema = mongoose.Schema(
   {
@@ -9,11 +10,15 @@ const messageSchema = mongoose.Schema(
     deletedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     time: {
       type: String,
-      default: Date.now().time,
+      default: currentDate.toLocaleTimeString("en-US", {
+        hour12: false,
+        hour: "numeric",
+        minute: "numeric",
+      }),
     },
     date: {
       type: String,
-      default: Date.now().date,
+      default: currentDate.toLocaleDateString(),
     },
   },
   { timestamps: true }

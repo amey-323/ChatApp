@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
+const currentDate = new Date();
+
 const userSchema = mongoose.Schema(
   {
     name: { type: "String", required: true },
@@ -18,11 +20,15 @@ const userSchema = mongoose.Schema(
     },
     time: {
       type: String,
-      default: Date.now().time,
+      default: currentDate.toLocaleTimeString("en-US", {
+        hour12: false,
+        hour: "numeric",
+        minute: "numeric",
+      }),
     },
     date: {
       type: String,
-      default: Date.now().date,
+      default: currentDate.toLocaleDateString(),
     },
     status: {
       type: String,

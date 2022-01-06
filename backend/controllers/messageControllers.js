@@ -8,6 +8,7 @@ const Chat = require("../models/chatModel");
 //@access          Protected
 const allMessages = asyncHandler(async (req, res) => {
   const { user } = req;
+  console.log(user);
 
   try {
     const messages = await Message.find({
