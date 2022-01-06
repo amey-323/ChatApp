@@ -4,8 +4,8 @@ import io from "socket.io-client";
 import { Box, Button, Text } from "@chakra-ui/react";
 import { useHistory } from "react-router-dom";
 import Lottie from "react-lottie";
-import animationData from "../animations/call.json";
-import aData from "../animations/call-rejected.json";
+
+import { callOptions, callRejectionOptions } from "../config/AnimationOptions";
 
 const ENDPOINT = "http://localhost:5000";
 
@@ -22,29 +22,12 @@ const CallHandler = () => {
     setReceiver,
   } = ChatState();
 
-  const defaultOptions = {
-    loop: true,
-    autoplay: true,
-    animationData: animationData,
-    rendererSettings: {
-      preserveAspectRatio: "xMidYMid slice",
-    },
-  };
-  const dOptions = {
-    loop: true,
-    autoplay: true,
-    animationData: aData,
-    rendererSettings: {
-      preserveAspectRatio: "xMidYMid slice",
-    },
-  };
-
   const history = useHistory();
 
-  const [acceptedByMe, setAcceptedByMe] = useState(false);
-  const [rejectedByMe, setRejectedByMe] = useState(false);
+  const [acceptOrRejectByMe, setAcceptOrRejectByMe] = useState(false);
   const [acceptedByUser, setAcceptedByUser] = useState(false);
   const [rejectedByUser, setRejectedByUser] = useState(false);
+  // const [errorMsg, setErrorMsg] = useState("");
   const [callFrom, setCallFrom] = useState({});
 
   useEffect(() => {
@@ -53,12 +36,13 @@ const CallHandler = () => {
     socket.on("connected", () => {
       console.log("Connected");
     });
+
     socket.on("makingCall", (data) => {
       console.log(data);
-      setAcceptedByMe(false);
-      setRejectedByMe(false);
+      setAcceptOrRejectByMe(false);
       setCallFrom(data);
     });
+
     socket.on("isCallAccepted", (data) => {
       setCalling(false);
       setAcceptedByUser(true);
@@ -77,7 +61,7 @@ const CallHandler = () => {
   }, []);
 
   const acceptCall = (cFrom) => {
-    setAcceptedByMe(true);
+    setAcceptOrRejectByMe(true);
     socket.emit("acceptCall", {
       by: user._id,
       name: user.name,
@@ -88,7 +72,7 @@ const CallHandler = () => {
   };
 
   const rejectCall = () => {
-    setRejectedByMe(true);
+    setAcceptOrRejectByMe(true);
     socket.emit("rejectCall", {
       by: user._id,
       name: user.name,
@@ -97,19 +81,7 @@ const CallHandler = () => {
     setCallFrom({});
   };
 
-  // console.log(callerData);
-
   if (calling) {
-    // console.log(selectedChat.users);
-
-    var text = "Calling ...";
-    var uname = "";
-    selectedChat.users.forEach((u) => {
-      if (u._id !== user._id) {
-        uname += `${u.name} `;
-      }
-    });
-
     return (
       <Box
         d="flex"
@@ -130,7 +102,7 @@ const CallHandler = () => {
           ml={{ base: 0, md: 3 }}
           fontSize={20}
         >
-          {text}
+          Calling...
         </Text>
 
         {selectedChat.users.map((u) => {
@@ -149,7 +121,7 @@ const CallHandler = () => {
             </Box>
           ) : null;
         })}
-        <Lottie options={defaultOptions} height={100} width={100} />
+        <Lottie options={callOptions} height={100} width={100} />
       </Box>
     );
   }
@@ -204,12 +176,12 @@ const CallHandler = () => {
         >
           Call rejected
         </Text>
-        <Lottie options={dOptions} height={70} width={70} />
+        <Lottie options={callRejectionOptions} height={70} width={70} />
       </Box>
     );
   }
 
-  return !acceptedByMe && !rejectedByMe && callFrom.name ? (
+  return !acceptOrRejectByMe && callFrom.name ? (
     <Box
       d="flex"
       alignItems="center"
@@ -237,7 +209,7 @@ const CallHandler = () => {
         >
           {callFrom.name} is calling...
         </Text>
-        <Lottie options={defaultOptions} height={100} width={100} />
+        <Lottie options={callOptions} height={100} width={100} />
       </Box>
       <div>
         <Button
