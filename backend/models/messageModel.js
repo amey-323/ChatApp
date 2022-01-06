@@ -10,15 +10,9 @@ const messageSchema = mongoose.Schema(
     deletedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     time: {
       type: String,
-      default: currentDate.toLocaleTimeString("en-US", {
-        hour12: false,
-        hour: "numeric",
-        minute: "numeric",
-      }),
     },
     date: {
       type: String,
-      default: currentDate.toLocaleDateString(),
     },
   },
   { timestamps: true }

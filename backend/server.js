@@ -8,6 +8,7 @@ const messageRoutes = require("./routes/messageRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const session = require("express-session");
 const app = express();
+const Chat = require("./models/chatModel");
 
 dotenv.config();
 // dotenv.config();
@@ -72,6 +73,7 @@ io.on("connection", (socket) => {
     const { typer } = data;
     socket.in(room).emit("typing", typer);
   });
+
   socket.on("stop typing", (room) => socket.in(room).emit("stop typing"));
 
   socket.on("new message", (newMessageReceived) => {
@@ -84,8 +86,20 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("disconnect", () => {
-    socket.broadcast.emit("callEnded");
+  socket.on("deleteMsg", async (data) => {
+    const { chatId, from } = data;
+    const chat = await Chat.findOne({ _id: chatId }).populate(
+      "users",
+      "-password"
+    );
+    // console.log(chat);
+    if (!chat.users) return console.log("chat.users not defined");
+    console.log(chat.users);
+    console.log(from);
+    chat.users.forEach((u) => {
+      if (u._id == from) return;
+      socket.in(u._id).emit("messages deleted", chatId);
+    });
   });
 
   socket.on("callUser", (data) => {
@@ -133,6 +147,10 @@ io.on("connection", (socket) => {
   socket.on("answerCall", (data) => {
     console.log(data);
     socket.in(data.to.from).emit("callAccepted", data.signal);
+  });
+
+  socket.on("disconnect", () => {
+    socket.broadcast.emit("callEnded");
   });
 
   socket.off("setup", () => {

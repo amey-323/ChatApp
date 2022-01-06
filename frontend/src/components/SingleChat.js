@@ -1,4 +1,10 @@
-import { ArrowBackIcon, DeleteIcon, PhoneIcon } from "@chakra-ui/icons";
+import {
+  ArrowBackIcon,
+  CloseIcon,
+  DeleteIcon,
+  PhoneIcon,
+  SmallCloseIcon,
+} from "@chakra-ui/icons";
 import "./styles.css";
 import {
   Box,
@@ -7,6 +13,7 @@ import {
   HStack,
   IconButton,
   Input,
+  ModalCloseButton,
   Spinner,
   Text,
   useToast,
@@ -28,6 +35,7 @@ import InputEmoji from "react-input-emoji";
 import io from "socket.io-client";
 import { useHistory } from "react-router-dom";
 import DeleteMenu from "./miscellaneous/DeleteMenu";
+import DeleteMsgButton from "./miscellaneous/DeleteMsgButton";
 
 const ENDPOINT = "http://localhost:5000";
 var socket, selectedChatCompare;
@@ -93,7 +101,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       setLoading(true);
 
       const { data } = await axios.get(
-        `/api/message/${selectedChat._id}`,
+        `/api/message/${selectedChat._id}/${user._id}`,
         config
       );
       setMessages(data);
@@ -123,6 +131,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     socket.on("stop typing", () => {
       setIsTyping(false);
       setTyper("");
+    });
+    socket.on("messages deleted", (id) => {
+      console.log(selectedChat);
+      if (id === selectedChat._id) {
+        fetchMessages();
+      }
     });
   }, []);
 
@@ -168,7 +182,25 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     }
   };
 
-  const deleteMessages = async () => {
+  useEffect(() => {
+    socket.on("message received", (newMessageReceived) => {
+      console.log("Hello");
+      if (
+        !selectedChatCompare || // if chat is not selected or doesn't match current chat
+        selectedChatCompare._id !== newMessageReceived.chat._id
+      ) {
+        if (!notification.includes(newMessageReceived)) {
+          setNotification([newMessageReceived, ...notification]);
+          setFetchAgain(!fetchAgain);
+        }
+        // give notification
+      } else {
+        setMessages([...messages, newMessageReceived]);
+      }
+    });
+  });
+
+  const delMsgsEveryone = async () => {
     if (selectedMsgs.length !== 0) {
       try {
         const config = {
@@ -179,6 +211,59 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         };
         const { data } = await axios.post(
           "/api/message/deleteMessages",
+          {
+            messageIds: selectedMsgs,
+          },
+          config
+        );
+        toast({
+          title: `Success`,
+          description: `${data}`,
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+          position: "bottom",
+        });
+        socket.emit("deleteMsg", {
+          chatId: selectedChat._id,
+          from: user._id,
+        });
+        fetchMessages();
+        setSelectedMsgs([]);
+      } catch (error) {
+        toast({
+          title: "Error Occurred!",
+          description: `${error.message}`,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+          position: "bottom",
+        });
+        fetchMessages();
+        setSelectedMsgs([]);
+      }
+    } else {
+      toast({
+        title: "Please Select at least one message",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom",
+      });
+    }
+  };
+
+  const delMsgsUser = async () => {
+    if (selectedMsgs.length !== 0) {
+      try {
+        const config = {
+          headers: {
+            "Content-type": "application/json",
+            Authorization: `Bearer ${user.token}`,
+          },
+        };
+        const { data } = await axios.post(
+          `/api/message/deleteMessages/${user._id}`,
           {
             messageIds: selectedMsgs,
           },
@@ -216,23 +301,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       });
     }
   };
-
-  useEffect(() => {
-    socket.on("message received", (newMessageReceived) => {
-      if (
-        !selectedChatCompare || // if chat is not selected or doesn't match current chat
-        selectedChatCompare._id !== newMessageReceived.chat._id
-      ) {
-        if (!notification.includes(newMessageReceived)) {
-          setNotification([newMessageReceived, ...notification]);
-          setFetchAgain(!fetchAgain);
-        }
-        // give notification
-      } else {
-        setMessages([...messages, newMessageReceived]);
-      }
-    });
-  });
 
   const typingHandler = (e) => {
     setNewMessage(e.target.value);
@@ -353,6 +421,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     setFetchAgain={setFetchAgain}
                     fetchMessages={fetchMessages}
                   />
+                  <DeleteMenu />
                 </Box>
               </>
             )}
@@ -464,21 +533,27 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   </Button>
                 </HStack>
               ) : (
-                <HStack
-                  d="flex"
-                  align="center"
-                  justify="center"
-                  bg="#38B2AC"
-                  py={2}
-                  mt={2}
-                  borderRadius={5}
-                  onClick={deleteMessages}
-                >
-                  <Text color="white" fontSize={16} mx={{ base: 2, md: 0 }}>
-                    Delete Messages
-                  </Text>
-                  <DeleteIcon color="white" />
-                </HStack>
+                <>
+                  <DeleteMsgButton
+                    bgColor="red"
+                    title="Cancel"
+                    onClick={() => {
+                      setDeleteMsgsMode(false);
+                      setSelectedMsgs([]);
+                    }}
+                    icon={<SmallCloseIcon color="white" />}
+                  />
+                  <DeleteMsgButton
+                    title="Delete For Me"
+                    onClick={delMsgsUser}
+                    icon={<DeleteIcon color="white" />}
+                  />
+                  <DeleteMsgButton
+                    title="Delete For Everyone"
+                    onClick={delMsgsEveryone}
+                    icon={<DeleteIcon color="white" />}
+                  />
+                </>
               )}
             </FormControl>
           </Box>

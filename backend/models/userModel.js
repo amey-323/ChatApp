@@ -20,15 +20,9 @@ const userSchema = mongoose.Schema(
     },
     time: {
       type: String,
-      default: currentDate.toLocaleTimeString("en-US", {
-        hour12: false,
-        hour: "numeric",
-        minute: "numeric",
-      }),
     },
     date: {
       type: String,
-      default: currentDate.toLocaleDateString(),
     },
     status: {
       type: String,

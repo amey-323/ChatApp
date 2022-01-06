@@ -31,6 +31,7 @@ const ScrollableChat = ({ messages }) => {
                 />
               </Tooltip>
             )}
+            {/* <div>{m.date}</div> */}
             <span
               style={{
                 backgroundColor: `${
@@ -45,6 +46,7 @@ const ScrollableChat = ({ messages }) => {
             >
               {m.content}
             </span>
+            <span>{m.time}</span>
             {deleteMsgsMode && m.sender._id === user._id && (
               <Checkbox
                 borderColor="#209fe7"

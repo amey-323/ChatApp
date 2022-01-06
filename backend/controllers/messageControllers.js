@@ -3,20 +3,25 @@ const Message = require("../models/messageModel");
 const User = require("../models/userModel");
 const Chat = require("../models/chatModel");
 
+var mongoose = require("mongoose");
+
 //@description     Get all Messages
 //@route           GET /api/Message/:chatId
 //@access          Protected
 const allMessages = asyncHandler(async (req, res) => {
-  const { user } = req;
-  console.log(user);
-
   try {
-    const messages = await Message.find({
+    var messages = await Message.find({
       chat: req.params.chatId,
-      deletedBy: { $elemMatch: { $ne: user._id } },
     })
       .populate("sender", "name pic email")
       .populate("chat");
+
+    messages = messages.filter(
+      (message) => !message.deletedBy.includes(req.params.userId)
+    );
+
+    // console.log(messages);
+    // console.log(messages);
     res.json(messages);
   } catch (error) {
     res.status(400);
@@ -39,6 +44,12 @@ const sendMessage = asyncHandler(async (req, res) => {
     sender: req.user._id,
     content: content,
     chat: chatId,
+    time: new Date().toLocaleTimeString("en-US", {
+      hour12: false,
+      hour: "numeric",
+      minute: "numeric",
+    }),
+    date: new Date().toLocaleDateString(),
   };
 
   try {
@@ -63,7 +74,7 @@ const sendMessage = asyncHandler(async (req, res) => {
 //@description     Delete an array of messages by Id
 //@route           DELETE /api/Message/
 //@access          Protected
-const deleteMessages = asyncHandler(async (req, res) => {
+const deleteMessagesAll = asyncHandler(async (req, res) => {
   console.log(req.body);
   const { messageIds } = req.body;
 
@@ -87,4 +98,43 @@ const deleteMessages = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { allMessages, sendMessage, deleteMessages };
+const deleteMessagesUser = asyncHandler(async (req, res) => {
+  console.log(req.body);
+  const { messageIds } = req.body;
+  const { userId } = req.params;
+  console.log(req.params);
+
+  if (messageIds.length === 0) {
+    res.status(400);
+    throw new Error("Please pass at least one message id");
+  }
+
+  if (!userId) {
+    res.status(400);
+    throw new Error("User Id is required in params");
+  }
+
+  try {
+    var messages = await Message.updateMany(
+      {
+        $and: [{ _id: { $in: messageIds } }, { sender: userId }],
+      },
+      { $addToSet: { deletedBy: userId } }
+    )
+      .populate("sender", "name pic email")
+      .populate("chat");
+    console.log(messages);
+    res.status(200).send("Messages deleted successfully");
+  } catch (error) {
+    res.status(500);
+    console.log(error);
+    throw new Error("Server Error");
+  }
+});
+
+module.exports = {
+  allMessages,
+  sendMessage,
+  deleteMessagesAll,
+  deleteMessagesUser,
+};
