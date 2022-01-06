@@ -1,4 +1,5 @@
 import { Avatar } from "@chakra-ui/avatar";
+import { Checkbox } from "@chakra-ui/react";
 import { Tooltip } from "@chakra-ui/tooltip";
 import ScrollableFeed from "react-scrollable-feed";
 import {
@@ -10,7 +11,7 @@ import {
 import { ChatState } from "../Context/ChatProvider";
 
 const ScrollableChat = ({ messages }) => {
-  const { user } = ChatState();
+  const { user, deleteMsgsMode, selectedMsgs, setSelectedMsgs } = ChatState();
 
   return (
     <ScrollableFeed>
@@ -44,6 +45,25 @@ const ScrollableChat = ({ messages }) => {
             >
               {m.content}
             </span>
+            {deleteMsgsMode && m.sender._id === user._id && (
+              <Checkbox
+                borderColor="#209fe7"
+                ml={2}
+                isChecked={selectedMsgs.includes(m._id) ? true : false}
+                onChange={() => {
+                  // console.log("Hello");
+                  // console.log(selectedMsgs);
+                  var array = [...selectedMsgs];
+                  var index = array.indexOf(m._id);
+                  array.splice(index, 1);
+                  if (index !== -1) {
+                    setSelectedMsgs(array);
+                  } else {
+                    setSelectedMsgs([...selectedMsgs, m._id]);
+                  }
+                }}
+              />
+            )}
           </div>
         ))}
     </ScrollableFeed>

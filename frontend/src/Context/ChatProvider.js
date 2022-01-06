@@ -15,6 +15,11 @@ const ChatProvider = ({ children }) => {
   const [calling, setCalling] = useState(false);
   const [isCaller, setIsCaller] = useState(false);
 
+  //Delete Messages, chat
+  const [deleteChatMode, setDeleteChatMode] = useState(false);
+  const [deleteMsgsMode, setDeleteMsgsMode] = useState(false);
+  const [selectedMsgs, setSelectedMsgs] = useState([]);
+
   const history = useHistory();
 
   useEffect(() => {
@@ -36,6 +41,7 @@ const ChatProvider = ({ children }) => {
         setChats,
         notification,
         setNotification,
+        //related to calls
         caller,
         setCaller,
         calling,
@@ -44,6 +50,13 @@ const ChatProvider = ({ children }) => {
         setIsCaller,
         receiver,
         setReceiver,
+        //Related to deletion
+        deleteChatMode,
+        setDeleteChatMode,
+        deleteMsgsMode,
+        setDeleteMsgsMode,
+        selectedMsgs,
+        setSelectedMsgs,
       }}
     >
       {children}

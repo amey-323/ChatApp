@@ -7,8 +7,13 @@ const Chat = require("../models/chatModel");
 //@route           GET /api/Message/:chatId
 //@access          Protected
 const allMessages = asyncHandler(async (req, res) => {
+  const { user } = req;
+
   try {
-    const messages = await Message.find({ chat: req.params.chatId })
+    const messages = await Message.find({
+      chat: req.params.chatId,
+      deletedBy: { $elemMatch: { $ne: user._id } },
+    })
       .populate("sender", "name pic email")
       .populate("chat");
     res.json(messages);
@@ -54,4 +59,31 @@ const sendMessage = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { allMessages, sendMessage };
+//@description     Delete an array of messages by Id
+//@route           DELETE /api/Message/
+//@access          Protected
+const deleteMessages = asyncHandler(async (req, res) => {
+  console.log(req.body);
+  const { messageIds } = req.body;
+
+  if (messageIds.length === 0) {
+    console.log("Please pass at least one message id");
+    return res.sendStatus(400);
+  }
+
+  try {
+    var { deletedCount } = await Message.deleteMany({
+      _id: { $in: messageIds },
+    });
+    if (deletedCount === messageIds.length) {
+      return res.status(200).send("Messages Deleted Successfully");
+    }
+    res.status(404);
+    throw new Error("Failed to delete some messages!");
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+});
+
+module.exports = { allMessages, sendMessage, deleteMessages };

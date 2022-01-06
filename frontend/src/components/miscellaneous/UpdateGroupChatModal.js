@@ -25,7 +25,14 @@ import UserListItem from "../userAvatar/UserListItem";
 
 const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { user, selectedChat, setSelectedChat } = ChatState();
+  const {
+    user,
+    selectedChat,
+    setSelectedChat,
+    setSelectedMsgs,
+    setDeleteChatMode,
+    setDeleteMsgsMode,
+  } = ChatState();
   const [groupChatName, setGroupChatName] = useState();
   const [search, setSearch] = useState("");
   const [searchResult, setSearchResult] = useState([]);
@@ -73,6 +80,9 @@ const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages }) => {
       );
 
       setSelectedChat(data);
+      setSelectedMsgs([]);
+      setDeleteChatMode(false);
+      setDeleteMsgsMode(false);
       setFetchAgain(!fetchAgain);
       setLoading(false);
     } catch (error) {
@@ -118,6 +128,9 @@ const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages }) => {
       );
 
       user1._id === user._id ? setSelectedChat() : setSelectedChat(data);
+      setSelectedMsgs([]);
+      setDeleteChatMode(false);
+      setDeleteMsgsMode(false);
       setFetchAgain(!fetchAgain);
       fetchMessages();
       setLoading(false);
@@ -151,6 +164,9 @@ const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages }) => {
         config
       );
       setSelectedChat();
+      setSelectedMsgs([]);
+      setDeleteChatMode(false);
+      setDeleteMsgsMode(false);
       setFetchAgain(!fetchAgain);
       fetchMessages();
       setLoading(false);
@@ -190,6 +206,9 @@ const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages }) => {
       // console.log(data._id);
       // setSelectedChat("");
       setSelectedChat(data);
+      setSelectedMsgs([]);
+      setDeleteChatMode(false);
+      setDeleteMsgsMode(false);
       setFetchAgain(!fetchAgain);
       setRenameLoading(false);
     } catch (error) {

@@ -1,4 +1,4 @@
-import { ArrowBackIcon, PhoneIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon, DeleteIcon, PhoneIcon } from "@chakra-ui/icons";
 import "./styles.css";
 import {
   Box,
@@ -27,6 +27,7 @@ import SendIcon from "@material-ui/icons/Send";
 import InputEmoji from "react-input-emoji";
 import io from "socket.io-client";
 import { useHistory } from "react-router-dom";
+import DeleteMenu from "./miscellaneous/DeleteMenu";
 
 const ENDPOINT = "http://localhost:5000";
 var socket, selectedChatCompare;
@@ -37,8 +38,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     setSelectedChat,
     notification,
     setNotification,
-    calling,
     setCalling,
+    setSelectedMsgs,
+    setDeleteChatMode,
+    setDeleteMsgsMode,
+    deleteMsgsMode,
+    selectedMsgs,
   } = ChatState();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -163,6 +168,55 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     }
   };
 
+  const deleteMessages = async () => {
+    if (selectedMsgs.length !== 0) {
+      try {
+        const config = {
+          headers: {
+            "Content-type": "application/json",
+            Authorization: `Bearer ${user.token}`,
+          },
+        };
+        const { data } = await axios.post(
+          "/api/message/deleteMessages",
+          {
+            messageIds: selectedMsgs,
+          },
+          config
+        );
+        toast({
+          title: `Success`,
+          description: `${data}`,
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+          position: "bottom",
+        });
+        fetchMessages();
+        setSelectedMsgs([]);
+      } catch (error) {
+        toast({
+          title: "Error Occurred!",
+          description: `${error.message}`,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+          position: "bottom",
+        });
+        fetchMessages();
+        setSelectedMsgs([]);
+      }
+    } else {
+      toast({
+        title: "Please Select at least one message",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom",
+      });
+    }
+  };
+
   useEffect(() => {
     socket.on("message received", (newMessageReceived) => {
       if (
@@ -224,7 +278,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             <IconButton
               d={{ base: "flex", md: "none" }}
               icon={<ArrowBackIcon />}
-              onClick={() => setSelectedChat("")}
+              onClick={() => {
+                setSelectedChat("");
+                setSelectedMsgs([]);
+                setDeleteChatMode(false);
+                setDeleteMsgsMode(false);
+              }}
             />
 
             {!selectedChat.isGroupChat ? (
@@ -243,7 +302,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     placement="bottom-end"
                   >
                     <IconButton
-                      marginRight={4}
+                      marginX={2}
                       icon={<PhoneIcon />}
                       onClick={() => {
                         setCalling(true);
@@ -258,6 +317,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   <ProfileModal
                     user={getSenderFull(user, selectedChat.users)}
                   />
+                  <DeleteMenu />
                 </Box>
               </>
             ) : (
@@ -353,33 +413,44 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
               ) : (
                 <></>
               )}
-              <HStack align="end" justify="left">
-                <Input
-                  bg="#E0E0E0"
-                  placeholder="Enter a message.."
-                  value={newMessage}
-                  onChange={typingHandler}
-                  ref={inputRef}
+              {!deleteMsgsMode && openEmojiPicker && (
+                <Picker
+                  position="absolute"
+                  zIndex={10}
+                  preload={false}
+                  onEmojiClick={onEmojiClick}
                 />
-                <VStack align="end">
-                  {openEmojiPicker && (
-                    <Picker
-                      position="relative"
-                      zIndex={5}
-                      preload={false}
-                      onEmojiClick={onEmojiClick}
-                    />
-                  )}
-                  <button
-                    className="emotes"
-                    onClick={(e) => {
-                      setOpenEmojiPicker(!openEmojiPicker);
-                    }}
-                  >
-                    😊
-                  </button>
-                </VStack>
-                {/* <InputEmoji
+              )}
+              {!deleteMsgsMode ? (
+                <HStack align="center" justify="left">
+                  <Input
+                    bg="#E0E0E0"
+                    placeholder="Enter a message.."
+                    value={newMessage}
+                    onChange={typingHandler}
+                    ref={inputRef}
+                    height={10}
+                  />
+                  <VStack align="end">
+                    {/* {openEmojiPicker && (
+                      <Picker
+                        position="absolute"
+                        zIndex={10}
+                        preload={false}
+                        onEmojiClick={onEmojiClick}
+                      />
+                    )} */}
+                    <button
+                      height={10}
+                      className="emotes"
+                      onClick={(e) => {
+                        setOpenEmojiPicker(!openEmojiPicker);
+                      }}
+                    >
+                      😊
+                    </button>
+                  </VStack>
+                  {/* <InputEmoji
                   value={newMessage}
                   onChange={(e) => {
                     typingHandler(e);
@@ -388,10 +459,27 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   placeholder="Type a message"
                 /> */}
 
-                <Button onClick={sendMessage} className="send-msg">
-                  <SendIcon />
-                </Button>
-              </HStack>
+                  <Button onClick={sendMessage} className="send-msg">
+                    <SendIcon />
+                  </Button>
+                </HStack>
+              ) : (
+                <HStack
+                  d="flex"
+                  align="center"
+                  justify="center"
+                  bg="#38B2AC"
+                  py={2}
+                  mt={2}
+                  borderRadius={5}
+                  onClick={deleteMessages}
+                >
+                  <Text color="white" fontSize={16} mx={{ base: 2, md: 0 }}>
+                    Delete Messages
+                  </Text>
+                  <DeleteIcon color="white" />
+                </HStack>
+              )}
             </FormControl>
           </Box>
         </>

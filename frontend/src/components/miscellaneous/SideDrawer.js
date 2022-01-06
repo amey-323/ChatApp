@@ -44,6 +44,9 @@ function SideDrawer() {
     setChats,
     notification,
     setNotification,
+    setSelectedMsgs,
+    setDeleteChatMode,
+    setDeleteMsgsMode,
   } = ChatState();
 
   const toast = useToast();
@@ -107,6 +110,9 @@ function SideDrawer() {
 
       if (!chats.find((c) => c._id === data._id)) setChats([data, ...chats]);
       setSelectedChat(data);
+      setSelectedMsgs([]);
+      setDeleteChatMode(false);
+      setDeleteMsgsMode(false);
       setLoadingChat(false);
       onClose();
     } catch (error) {
@@ -159,6 +165,9 @@ function SideDrawer() {
                   key={notif._id}
                   onClick={() => {
                     setSelectedChat(notif.chat);
+                    setSelectedMsgs([]);
+                    setDeleteChatMode(false);
+                    setDeleteMsgsMode(false);
                     setNotification(
                       notification.filter((n) => n.chat._id !== notif.chat._id)
                     );
