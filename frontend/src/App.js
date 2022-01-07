@@ -5,6 +5,7 @@ import HomePage from "./Pages/HomePage";
 import ChatPage from "./Pages/ChatPage";
 import CallPage from "./Pages/CallPage";
 import "./App.css";
+import GroupCall from "./Pages/GroupCall";
 
 const App = () => {
   return (
@@ -12,6 +13,7 @@ const App = () => {
       <Route exact path="/" component={HomePage}></Route>
       <Route exact path="/chats" component={ChatPage}></Route>
       <Route exact path="/call" component={CallPage}></Route>
+      <Route exact path="/groupCall" component={GroupCall}></Route>
       {/* <Button colorScheme="blue">Button</Button> */}
     </div>
   );

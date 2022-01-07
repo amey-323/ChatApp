@@ -4,6 +4,7 @@ import {
   DeleteIcon,
   PhoneIcon,
   SmallCloseIcon,
+  PlusSquareIcon,
 } from "@chakra-ui/icons";
 import "./styles.css";
 import {
@@ -31,7 +32,7 @@ import Lottie from "react-lottie";
 import animationData from "../animations/typing.json";
 import Picker from "emoji-picker-react";
 import SendIcon from "@material-ui/icons/Send";
-import InputEmoji from "react-input-emoji";
+
 import io from "socket.io-client";
 import { useHistory } from "react-router-dom";
 import DeleteMenu from "./miscellaneous/DeleteMenu";
@@ -338,8 +339,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             w="100%"
             fontFamily="Work sans"
             d="flex"
-            position="relative"
-            zIndex={1}
+            // position="relative"
+            // zIndex={1}
             justifyContent={{ base: "space-between" }}
             alignItems="center"
           >
@@ -405,14 +406,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   >
                     <IconButton
                       marginRight={4}
-                      icon={<PhoneIcon />}
+                      icon={<PlusSquareIcon />}
                       onClick={() => {
-                        setCalling(true);
-                        socket.emit("makingCall", {
-                          from: user._id,
-                          name: user.name,
-                          to: selectedChat,
-                        });
+                        history.push("/groupCall");
                       }}
                     />
                   </Tooltip>
@@ -483,12 +479,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 <></>
               )}
               {!deleteMsgsMode && openEmojiPicker && (
-                <Picker
-                  position="absolute"
-                  zIndex={10}
-                  preload={false}
-                  onEmojiClick={onEmojiClick}
-                />
+                <HStack d="flex" justify="end" my={2}>
+                  <Picker preload={false} onEmojiClick={onEmojiClick} />
+                </HStack>
               )}
               {!deleteMsgsMode ? (
                 <HStack align="center" justify="left">
