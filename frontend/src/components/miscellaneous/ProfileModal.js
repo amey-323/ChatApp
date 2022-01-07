@@ -31,9 +31,9 @@ const ProfileModal = ({ user, children }) => {
           onClick={onOpen}
         />
       )}
-      <Modal size="lg" onClose={onClose} isOpen={isOpen} isCentered>
+      <Modal size="xl" onClose={onClose} isOpen={isOpen} isCentered>
         <ModalOverlay />
-        <ModalContent h="410px">
+        <ModalContent h="420px">
           <ModalHeader
             fontSize="40px"
             fontFamily="Work sans"
@@ -60,6 +60,12 @@ const ProfileModal = ({ user, children }) => {
               fontFamily="Work sans"
             >
               Email: {user.email}
+            </Text>
+            <Text
+              fontSize={{ base: "20px", md: "20px" }}
+              fontFamily="Work sans"
+            >
+              {user.status}
             </Text>
           </ModalBody>
           <ModalFooter>

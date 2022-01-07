@@ -12,8 +12,9 @@ const allMessages = asyncHandler(async (req, res) => {
   try {
     var messages = await Message.find({
       chat: req.params.chatId,
+      //deletedBy: { $elemMatch: { $ne: user._id } },
     })
-      .populate("sender", "name pic email")
+      .populate("sender", "name pic email date time")
       .populate("chat");
 
     messages = messages.filter(
@@ -59,7 +60,7 @@ const sendMessage = asyncHandler(async (req, res) => {
     message = await message.populate("chat");
     message = await User.populate(message, {
       path: "chat.users",
-      select: "name pic email",
+      select: "name pic email date time",
     });
 
     await Chat.findByIdAndUpdate(req.body.chatId, { latestMessage: message });
