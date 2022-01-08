@@ -49,3 +49,33 @@ export const getSenderFull = (loggedUser, users) => {
 export const removeLoggedUser = (loggedUser, chat) => {
   return chat.users.filter((user) => user._id !== loggedUser._id);
 };
+
+export const getDate = (messages, m, i) => {
+  if (i === 0 || messages[i - 1].date !== m.date) {
+    // console.log(messages[i].date, m.date);
+    // if (m.date === new Date().toLocaleDateString("en-IN")) {
+    //   Date.parse()
+    //   // console.log("today");
+    //   console.log(m.date - new Date().toLocaleDateString);
+    //   return "Today";
+    // }
+
+    const mDate = m.date.split("/");
+    const today = new Date().toLocaleDateString("en-IN").split("/");
+
+    if (mDate[1] === today[1] && mDate[2] === today[2]) {
+      const mDay = parseInt(mDate[0]);
+      const tDay = parseInt(today[0]);
+      if (tDay - mDay === 1) {
+        return "Yesterday";
+      }
+      if (tDay - mDay === 0) {
+        return "Today";
+      }
+    }
+
+    // console.log(today);
+    return m.date;
+  }
+  return null;
+};

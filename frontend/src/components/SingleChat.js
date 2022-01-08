@@ -1,11 +1,4 @@
-import {
-  ArrowBackIcon,
-  CloseIcon,
-  DeleteIcon,
-  PhoneIcon,
-  SmallCloseIcon,
-  PlusSquareIcon,
-} from "@chakra-ui/icons";
+import { ArrowBackIcon, PhoneIcon, PlusSquareIcon } from "@chakra-ui/icons";
 import "./styles.css";
 import {
   Box,
@@ -14,7 +7,6 @@ import {
   HStack,
   IconButton,
   Input,
-  ModalCloseButton,
   Spinner,
   Text,
   useToast,
@@ -32,11 +24,14 @@ import Lottie from "react-lottie";
 import animationData from "../animations/typing.json";
 import Picker from "emoji-picker-react";
 import SendIcon from "@material-ui/icons/Send";
+import { confirmAlert } from "react-confirm-alert"; // Import
+import "react-confirm-alert/src/react-confirm-alert.css"; // Import css
 
 import io from "socket.io-client";
 import { useHistory } from "react-router-dom";
 import DeleteMenu from "./miscellaneous/DeleteMenu";
-import DeleteMsgButton from "./miscellaneous/DeleteMsgButton";
+import { DeleteAllSwitch, DeleteMeSwitch } from "./miscellaneous/DeleteSwitch";
+import DeleteButtonGroup from "./miscellaneous/DeleteButtonGroup";
 
 const ENDPOINT = "http://localhost:5000";
 var socket, selectedChatCompare;
@@ -52,8 +47,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     setDeleteChatMode,
     setDeleteMsgsMode,
     deleteMsgsMode,
+    deleteChatMode,
     selectedMsgs,
   } = ChatState();
+
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
@@ -73,6 +70,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       preserveAspectRatio: "xMidYMid slice",
     },
   };
+
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
@@ -211,9 +209,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           },
         };
         const { data } = await axios.post(
-          "/api/message/deleteMessages",
+          "/api/message/deleteForEveryone",
           {
             messageIds: selectedMsgs,
+            userId: user._id,
           },
           config
         );
@@ -255,6 +254,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   };
 
   const delMsgsUser = async () => {
+    console.log(selectedMsgs.length);
     if (selectedMsgs.length !== 0) {
       try {
         const config = {
@@ -264,9 +264,11 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           },
         };
         const { data } = await axios.post(
-          `/api/message/deleteMessages/${user._id}`,
+          `/api/message/deleteForMe`,
           {
             messageIds: selectedMsgs,
+            chat: selectedChat,
+            userId: user._id,
           },
           config
         );
@@ -300,6 +302,21 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         isClosable: true,
         position: "bottom",
       });
+    }
+  };
+
+  const deleteChat = async () => {
+    if (selectedMsgs.length === 0) {
+      toast({
+        title: "Chat is already empty",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom",
+      });
+    } else {
+      await delMsgsUser();
+      setDeleteChatMode(false);
     }
   };
 
@@ -339,7 +356,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             w="100%"
             fontFamily="Work sans"
             d="flex"
-            // position="relative"
+            position="relative"
             // zIndex={1}
             justifyContent={{ base: "space-between" }}
             alignItems="center"
@@ -386,7 +403,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   <ProfileModal
                     user={getSenderFull(user, selectedChat.users)}
                   />
-                  <DeleteMenu />
+                  <DeleteMenu messages={messages} />
                 </Box>
               </>
             ) : (
@@ -405,7 +422,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     placement="bottom-end"
                   >
                     <IconButton
-                      marginRight={4}
+                      marginX={2}
                       icon={<PlusSquareIcon />}
                       onClick={() => {
                         history.push("/groupCall");
@@ -417,7 +434,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     setFetchAgain={setFetchAgain}
                     fetchMessages={fetchMessages}
                   />
-                  <DeleteMenu />
+                  <DeleteMenu messages={messages} />
                 </Box>
               </>
             )}
@@ -478,12 +495,27 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
               ) : (
                 <></>
               )}
-              {!deleteMsgsMode && openEmojiPicker && (
-                <HStack d="flex" justify="end" my={2}>
+
+              {deleteMsgsMode && (
+                <>
+                  <DeleteMeSwitch />
+                  <DeleteAllSwitch />
+                </>
+              )}
+              {!deleteMsgsMode && !deleteChatMode && openEmojiPicker && (
+                <HStack
+                  d="flex"
+                  justify="end"
+                  // my={2}
+                  position="absolute"
+                  zIndex={10}
+                  bottom={12}
+                  right={0}
+                >
                   <Picker preload={false} onEmojiClick={onEmojiClick} />
                 </HStack>
               )}
-              {!deleteMsgsMode ? (
+              {!deleteMsgsMode && !deleteChatMode && (
                 <HStack align="center" justify="left">
                   <Input
                     bg="#E0E0E0"
@@ -494,14 +526,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     height={10}
                   />
                   <VStack align="end">
-                    {/* {openEmojiPicker && (
-                      <Picker
-                        position="absolute"
-                        zIndex={10}
-                        preload={false}
-                        onEmojiClick={onEmojiClick}
-                      />
-                    )} */}
                     <button
                       height={10}
                       className="emotes"
@@ -512,42 +536,18 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                       😊
                     </button>
                   </VStack>
-                  {/* <InputEmoji
-                  value={newMessage}
-                  onChange={(e) => {
-                    typingHandler(e);
-                  }}
-                  onEnter={sendMessage}
-                  placeholder="Type a message"
-                /> */}
-
                   <Button onClick={sendMessage} className="send-msg">
                     <SendIcon />
                   </Button>
                 </HStack>
-              ) : (
-                <>
-                  <DeleteMsgButton
-                    bgColor="red"
-                    title="Cancel"
-                    onClick={() => {
-                      setDeleteMsgsMode(false);
-                      setSelectedMsgs([]);
-                    }}
-                    icon={<SmallCloseIcon color="white" />}
-                  />
-                  <DeleteMsgButton
-                    title="Delete For Me"
-                    onClick={delMsgsUser}
-                    icon={<DeleteIcon color="white" />}
-                  />
-                  <DeleteMsgButton
-                    title="Delete For Everyone"
-                    onClick={delMsgsEveryone}
-                    icon={<DeleteIcon color="white" />}
-                  />
-                </>
               )}
+              {deleteMsgsMode && (
+                <DeleteButtonGroup
+                  delMsgsUser={delMsgsUser}
+                  delMsgsEveryone={delMsgsEveryone}
+                />
+              )}
+              {deleteChatMode && <DeleteButtonGroup deleteChat={deleteChat} />}
             </FormControl>
           </Box>
         </>

@@ -1,4 +1,3 @@
-import { DeleteIcon } from "@chakra-ui/icons";
 import { HStack, Text } from "@chakra-ui/react";
 
 const DeleteMsgButton = ({ onClick, bgColor, textColor, title, icon }) => {

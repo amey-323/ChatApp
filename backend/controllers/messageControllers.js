@@ -76,50 +76,73 @@ const sendMessage = asyncHandler(async (req, res) => {
 //@route           DELETE /api/Message/
 //@access          Protected
 const deleteMessagesAll = asyncHandler(async (req, res) => {
-  console.log(req.body);
-  const { messageIds } = req.body;
+  // console.log(req.body);
+  const { messageIds, userId } = req.body;
 
-  if (messageIds.length === 0) {
-    console.log("Please pass at least one message id");
-    return res.sendStatus(400);
+  if (!messageIds || !messageIds.length || messageIds.length === 0) {
+    res.status(400);
+    throw new Error("At least one message is required");
+  }
+
+  if (!userId) {
+    res.status(400);
+    throw new Error("User Id is required");
   }
 
   try {
     var { deletedCount } = await Message.deleteMany({
-      _id: { $in: messageIds },
+      $and: [{ _id: { $in: messageIds } }, { sender: userId }],
     });
+    console.log(deletedCount, messageIds.length);
     if (deletedCount === messageIds.length) {
       return res.status(200).send("Messages Deleted Successfully");
     }
-    res.status(404);
-    throw new Error("Failed to delete some messages!");
+    res.status(401);
+    throw new Error("Unauthorized: You don't have access to messages");
   } catch (error) {
+    console.log(error);
     res.status(400);
     throw new Error(error.message);
   }
 });
 
 const deleteMessagesUser = asyncHandler(async (req, res) => {
-  console.log(req.body);
-  const { messageIds } = req.body;
-  const { userId } = req.params;
-  console.log(req.params);
+  // console.log(req.body);
+  const { messageIds, chat, userId } = req.body;
 
-  if (messageIds.length === 0) {
+  if (!messageIds || !messageIds.length || messageIds.length === 0) {
     res.status(400);
-    throw new Error("Please pass at least one message id");
+    throw new Error("At least one message is required");
   }
 
   if (!userId) {
     res.status(400);
-    throw new Error("User Id is required in params");
+    throw new Error("User Id is required");
+  }
+
+  if (!chat) {
+    res.status(400);
+    throw new Error("Chat is required");
+  }
+
+  if (!chat.users) {
+    res.status(400);
+    throw new Error("Chat doesn't contain users");
+  }
+
+  // console.log(chat.users);
+  // console.log(userId);
+
+  const foundUser = chat.users.find((u) => u._id == userId);
+
+  if (!foundUser) {
+    res.status(401);
+    throw new Error("Unauthorized: You are not a member of the chat");
   }
 
   try {
     var messages = await Message.updateMany(
-      {
-        $and: [{ _id: { $in: messageIds } }, { sender: userId }],
-      },
+      { _id: { $in: messageIds } },
       { $addToSet: { deletedBy: userId } }
     )
       .populate("sender", "name pic email")

@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.route("/:chatId/:userId").get(protect, allMessages);
 router.route("/").post(protect, sendMessage);
-router.post("/deleteMessages/:userId", protect, deleteMessagesUser);
-router.post("/deleteMessages", protect, deleteMessagesAll);
+router.post("/deleteForMe", protect, deleteMessagesUser);
+router.post("/deleteForEveryone", protect, deleteMessagesAll);
 
 module.exports = router;

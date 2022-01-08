@@ -10,12 +10,13 @@ import {
 } from "@chakra-ui/react";
 import { ChatState } from "../../Context/ChatProvider";
 
-const DeleteMenu = () => {
+const DeleteMenu = ({ messages }) => {
   const {
     deleteChatMode,
     deleteMsgsMode,
     setDeleteChatMode,
     setDeleteMsgsMode,
+    setSelectedMsgs,
   } = ChatState();
   return (
     <Box
@@ -31,8 +32,10 @@ const DeleteMenu = () => {
         <MenuList fontSize={20}>
           <MenuItem
             onClick={() => {
-              if (!deleteChatMode) setDeleteChatMode(true);
               if (deleteMsgsMode) setDeleteMsgsMode(false);
+              if (!deleteChatMode) setDeleteChatMode(true);
+              const messageIds = messages.map((m) => m._id);
+              setSelectedMsgs(messageIds);
             }}
           >
             Delete Chat
@@ -40,8 +43,11 @@ const DeleteMenu = () => {
           <MenuDivider />
           <MenuItem
             onClick={() => {
+              if (!deleteMsgsMode) {
+                setDeleteMsgsMode(true);
+                setSelectedMsgs([]);
+              }
               if (deleteChatMode) setDeleteChatMode(false);
-              if (!deleteMsgsMode) setDeleteMsgsMode(true);
             }}
           >
             Delete Messages

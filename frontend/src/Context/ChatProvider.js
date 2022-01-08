@@ -18,6 +18,7 @@ const ChatProvider = ({ children }) => {
   //Delete Messages, chat
   const [deleteChatMode, setDeleteChatMode] = useState(false);
   const [deleteMsgsMode, setDeleteMsgsMode] = useState(false);
+  const [isDeleteMe, setIsDeleteMe] = useState(true);
   const [selectedMsgs, setSelectedMsgs] = useState([]);
 
   const history = useHistory();
@@ -57,6 +58,8 @@ const ChatProvider = ({ children }) => {
         setDeleteMsgsMode,
         selectedMsgs,
         setSelectedMsgs,
+        isDeleteMe,
+        setIsDeleteMe,
       }}
     >
       {children}
