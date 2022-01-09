@@ -13,7 +13,7 @@ const App = () => {
       <Route exact path="/" component={HomePage}></Route>
       <Route exact path="/chats" component={ChatPage}></Route>
       <Route exact path="/call" component={CallPage}></Route>
-      <Route exact path="/groupCall" component={GroupCall}></Route>
+      <Route exact path="/groupCall/:roomID" component={GroupCall}></Route>
       {/* <Button colorScheme="blue">Button</Button> */}
     </div>
   );

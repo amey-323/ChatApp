@@ -26,6 +26,7 @@ import Picker from "emoji-picker-react";
 import SendIcon from "@material-ui/icons/Send";
 import { confirmAlert } from "react-confirm-alert"; // Import
 import "react-confirm-alert/src/react-confirm-alert.css"; // Import css
+import { v1 as uuid } from "uuid";
 
 import io from "socket.io-client";
 import { useHistory } from "react-router-dom";
@@ -35,7 +36,7 @@ import DeleteButtonGroup from "./miscellaneous/DeleteButtonGroup";
 
 const ENDPOINT = "http://localhost:5000";
 var socket, selectedChatCompare;
-const SingleChat = ({ fetchAgain, setFetchAgain }) => {
+const SingleChat = ({ fetchAgain, setFetchAgain, props }) => {
   const {
     user,
     selectedChat,
@@ -338,6 +339,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       }
     }, timerLength);
   };
+  const create = () => {
+    const id = selectedChat._id;
+    history.push(`/groupCall/${id}`);
+  };
 
   useEffect(() => {
     return () => {
@@ -424,9 +429,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     <IconButton
                       marginX={2}
                       icon={<PlusSquareIcon />}
-                      onClick={() => {
-                        history.push("/groupCall");
-                      }}
+                      onClick={create}
                     />
                   </Tooltip>
                   <UpdateGroupChatModal
