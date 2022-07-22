@@ -9,10 +9,18 @@ const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const session = require("express-session");
 const app = express();
 const Chat = require("./models/chatModel");
+const path = require("path");
+// const users = {};
 
-const users = {};
+// const socketToRoom = {};
 
-const socketToRoom = {};
+//**************** For groupCall-New****************/
+
+connections = {};
+messages = {};
+timeOnline = {};
+
+//---end---
 
 dotenv.config();
 // dotenv.config();
@@ -31,13 +39,23 @@ app.use(
   })
 );
 
-app.get("/", (req, res) => {
-  res.send("API is running");
-});
-
 app.use("/api/user", userRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/message", messageRoutes);
+
+//------------------deployment---------------------
+__dirname = path.resolve();
+if (process.env.NODE_ENV === "production") {
+  app.use(express.statis(path.join(__dirname, "/frontend/build")));
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "frontend", "build", "index.html"));
+  });
+} else {
+  app.get("/", (req, res) => {
+    res.send("API is running");
+  });
+}
+//------------------deployment---------------------
 
 app.use(notFound);
 app.use(errorHandler);
@@ -162,46 +180,146 @@ io.on("connection", (socket) => {
     socket.leave(userData._id);
   });
 
-  //for groupCall
+  //********for groupCall*********
 
-  socket.on("join room", (roomID) => {
-    if (users[roomID]) {
-      const length = users[roomID].length;
-      if (length === 6) {
-        socket.emit("room full");
-        return;
-      }
-      users[roomID].push(socket.id);
-    } else {
-      users[roomID] = [socket.id];
+  // socket.on("join room", (roomID) => {
+  //   if (users[roomID]) {
+  //     const length = users[roomID].length;
+  //     if (length === 6) {
+  //       socket.emit("room full");
+  //       return;
+  //     }
+  //     users[roomID].push(socket.id);
+  //   } else {
+  //     users[roomID] = [socket.id];
+  //   }
+  //   socketToRoom[socket.id] = roomID;
+  //   const usersInThisRoom = users[roomID].filter((id) => id !== socket.id);
+
+  //   socket.emit("all users", usersInThisRoom);
+  // });
+
+  // socket.on("sending signal", (payload) => {
+  //   io.to(payload.userToSignal).emit("user joined", {
+  //     signal: payload.signal,
+  //     callerID: payload.callerID,
+  //   });
+  // });
+
+  // socket.on("returning signal", (payload) => {
+  //   io.to(payload.callerID).emit("receiving returned signal", {
+  //     signal: payload.signal,
+  //     id: socket.id,
+  //   });
+  // });
+
+  // socket.on("disconnect", () => {
+  //   const roomID = socketToRoom[socket.id];
+  //   let room = users[roomID];
+  //   if (room) {
+  //     room = room.filter((id) => id !== socket.id);
+  //     users[roomID] = room;
+  //   }
+  //   socket.broadcast.emit("user left", socket.id);
+  // });
+
+  //**************For groupCall- New***********/
+
+  socket.on("join-call", (roomID) => {
+    if (connections[roomID] === undefined) {
+      connections[roomID] = [];
     }
-    socketToRoom[socket.id] = roomID;
-    const usersInThisRoom = users[roomID].filter((id) => id !== socket.id);
+    connections[roomID].push(socket.id);
 
-    socket.emit("all users", usersInThisRoom);
+    timeOnline[socket.id] = new Date();
+
+    for (let a = 0; a < connections[roomID].length; ++a) {
+      io.to(connections[roomID][a]).emit(
+        "user-joined",
+        socket.id,
+        connections[roomID]
+      );
+    }
+
+    if (messages[roomID] !== undefined) {
+      for (let a = 0; a < messages[roomID].length; ++a) {
+        io.to(socket.id).emit(
+          "chat-message",
+          messages[roomID][a]["data"],
+          messages[roomID][a]["sender"],
+          messages[roomID][a]["socket-id-sender"]
+        );
+      }
+    }
+
+    console.log(roomID, connections[roomID]);
   });
 
-  socket.on("sending signal", (payload) => {
-    io.to(payload.userToSignal).emit("user joined", {
-      signal: payload.signal,
-      callerID: payload.callerID,
-    });
+  socket.on("signal", (toId, message) => {
+    io.to(toId).emit("signal", socket.id, message);
   });
 
-  socket.on("returning signal", (payload) => {
-    io.to(payload.callerID).emit("receiving returned signal", {
-      signal: payload.signal,
-      id: socket.id,
-    });
+  socket.on("chat-message", (data, sender) => {
+    data = sanitizeString(data);
+    sender = sanitizeString(sender);
+
+    var key;
+    var ok = false;
+    for (const [k, v] of Object.entries(connections)) {
+      for (let a = 0; a < v.length; ++a) {
+        if (v[a] === socket.id) {
+          key = k;
+          ok = true;
+        }
+      }
+    }
+
+    if (ok === true) {
+      if (messages[key] === undefined) {
+        messages[key] = [];
+      }
+      messages[key].push({
+        sender: sender,
+        data: data,
+        "socket-id-sender": socket.id,
+      });
+      console.log("message", key, ":", sender, data);
+
+      for (let a = 0; a < connections[key].length; ++a) {
+        io.to(connections[key][a]).emit(
+          "chat-message",
+          data,
+          sender,
+          socket.id
+        );
+      }
+    }
   });
 
   socket.on("disconnect", () => {
-    const roomID = socketToRoom[socket.id];
-    let room = users[roomID];
-    if (room) {
-      room = room.filter((id) => id !== socket.id);
-      users[roomID] = room;
+    var diffTime = Math.abs(timeOnline[socket.id] - new Date());
+    var key;
+    for (const [k, v] of JSON.parse(
+      JSON.stringify(Object.entries(connections))
+    )) {
+      for (let a = 0; a < v.length; ++a) {
+        if (v[a] === socket.id) {
+          key = k;
+
+          for (let a = 0; a < connections[key].length; ++a) {
+            io.to(connections[key][a]).emit("user-left", socket.id);
+          }
+
+          var index = connections[key].indexOf(socket.id);
+          connections[key].splice(index, 1);
+
+          console.log(key, socket.id, Math.ceil(diffTime / 1000));
+
+          if (connections[key].length === 0) {
+            delete connections[key];
+          }
+        }
+      }
     }
-    socket.broadcast.emit("user left", socket.id);
   });
 });
