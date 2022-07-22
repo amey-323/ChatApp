@@ -6,6 +6,8 @@ This repo consists of a Chat Application built with the MERN stack. We have buil
 
 This is a full-stack chat application that can be up and running with just a few steps. Its frontend is built with Chakra UI running on top of React. The backend is built with Express.js and Node.js. Real-time message broadcasting is developed using Socket.IO. <br/>
 
+### Hosted link: https://chat-website-mern.herokuapp.com/
+
 ### How to use:
 1. Clone the repository.
 2. Once you have the repo, you need to install its dependencies. So using a terminal, move into the root directory of the project and execute ```npm i``` to install the    dependencies of the Node.js server
